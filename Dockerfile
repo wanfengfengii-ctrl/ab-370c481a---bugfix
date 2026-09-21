@@ -14,6 +14,12 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
+# libstdc++6 is required at runtime by the HiGHS native library shipped in
+# the highspy wheel and is not part of the slim base image.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY backend/requirements.txt ./
 RUN pip install -r requirements.txt
 
