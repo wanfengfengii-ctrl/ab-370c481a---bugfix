@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Executable acceptance entrypoint.
+# Runs the acceptance suite against a live deployment.
+# Override the target with BASE_URL or HOST_PORT, e.g.:
+#   HOST_PORT=9000 ./verify
+#   ./verify --base-url http://app:8000
+set -euo pipefail
+BASE="${BASE_URL:-http://localhost:${HOST_PORT:-8000}}"
+exec python3 "$(dirname "$0")/verify.py" --base-url "$BASE" "$@"

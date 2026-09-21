@@ -1,0 +1,33 @@
+# Triple-mask layout assignment workbench.
+#
+# The host port is configurable through HOST_PORT (default 8000):
+#   HOST_PORT=9000 docker compose up --build
+# or via an .env file (see .env.example).
+
+services:
+  app:
+    build: .
+    image: mask-workbench
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health', timeout=3).status == 200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    restart: unless-stopped
+
+  # Executable acceptance service: waits for a healthy app, runs the
+  # acceptance suite against the real API, then exits 0 (pass) or 1 (fail).
+  verify:
+    image: mask-workbench
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["python", "/app/verify.py", "--base-url", "http://app:8000"]
+    restart: "no"
